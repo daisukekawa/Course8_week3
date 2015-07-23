@@ -1,0 +1,43 @@
+---
+title: "PractivalMachineLearningWeek3"
+author: "Daisuke Kawamoto"
+date: "Thursday, July 23, 2015"
+output: html_document
+---
+
+### Explanation of the document
+This document predict the data performance of barbell lifts based on the data of Weight Lifting Exercise Dataset in http://groupware.les.inf.puc-rio.br/har.Thanks to HAR to share such a useful data for this study.
+
+### Order of the study
+
+## 1. Make model from training dataset
+
+First make the model for the prediction. Here it uses random forests algorithm for the model, since there are many variables in the dataset. It uses the accelerometers on the belt, forearm, arm, and dumbell, total 4 places.
+
+At first, it reads the raw data and makes tidy dataset. Testing is the dataset for test and training is the dataset for training:
+
+```{r}
+library(caret)
+pml_testing <- read.csv("pml-testing.csv")
+pml_training <- read.csv("pml-training.csv")
+testing <- pml_testing[grep("accel", names(pml_testing))]
+testing <- testing[,-c(2,7,12,17)]
+training <- pml_training[grep("accel", names(pml_training))]
+training <- cbind(training, pml_training[grep("classe", names(pml_training))])
+training <- training[,-c(2,7,12,17)]  
+```
+
+Then it makes the model(modFit) by using random forests algorithm ("rf"). Accuracy of the model is below:
+
+```{r}
+inTrain <- createDataPartition(y=training$classe, p=0.1, list=FALSE)
+train1 <- training[inTrain,]
+modFit <- train(classe ~., data=train1, method="rf", prox=TRUE, ntree=10)
+modFit
+```
+
+At last, it predicts the "classe" which means the performance of each participants in the testing dataset:
+
+```{r}
+predict(modFit, testing)
+```
